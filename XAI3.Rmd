@@ -1,6 +1,8 @@
 ---
-title: "XAI 3: Model-Agnostic methods"
-output: html_notebook
+title: 'XAI 3: Model-Agnostic methods'
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 ## EXERCISE:
@@ -11,6 +13,11 @@ Apply PDP to the regression example of predicting bike rentals. Fit a random for
 
 Analyse the influence of **days since 2011, temperature, humidity** and **wind speed** on the predicted bike counts.
 
+· Number of bikes renteg grows as temperatures grow until 20 degrees, then it starts declining.     
+
+· As we get more far away in time from 2011, we rent more bikes.     
+
+· Finally, the number of bikes rented decreases as humodoty and windspeed increase.
 
 ```{r}
 library(dplyr)
@@ -49,10 +56,10 @@ for(c in names(results)[1:4])
   }
 }
 
-p1 = ggplot(days_since, aes(x=temp,y=results$temp)) + geom_line() + ylim(0, 6050)
-p2 = ggplot(days_since,aes(x=days_since_2011, y=results$days_since_2011)) + geom_line() + ylim(0, 6050)
-p3 = ggplot(days_since,aes(x=hum, y=results$hum)) + geom_line() + ylim(0, 6050) ## + geom_rug()
-p4 = ggplot(days_since,aes(x=windspeed, y=results$windspeed)) + geom_line() + ylim(0, 6050) ## + geom_rug()
+p1 = ggplot(days_since, aes(x=temp,y=results$temp)) + geom_line() + ylim(0, 6050) + geom_rug(mapping = aes(x=days_since$temp), sides = "b", inherit.aes = F)
+p2 = ggplot(days_since,aes(x=days_since_2011, y=results$days_since_2011)) + geom_line() + ylim(0, 6050) + geom_rug(mapping = aes(x=days_since$days_since_2011), sides = "b", inherit.aes = F)
+p3 = ggplot(days_since,aes(x=hum, y=results$hum)) + geom_line() + ylim(0, 6050) + geom_rug(mapping = aes(x=days_since$hum), sides = "b", inherit.aes = F)
+p4 = ggplot(days_since,aes(x=windspeed, y=results$windspeed)) + geom_line() + ylim(0, 6050) + geom_rug(mapping = aes(x=days_since$windspeed), sides = "b", inherit.aes = F)
 
 library(patchwork)
 p1 + p2+ p3 + p4 + plot_layout(ncol=4)
@@ -72,6 +79,11 @@ TIP: Use geom_tile() to generate the 2D plot. Set width and height to avoid hole
 
 Interpret the results.
 
+Number of bikes rented grows as temperatures grow until 20 degrees, then it starts declining.
+
+As we get more far away in time from 2011, we rent more bikes.
+
+Finally, the number of bikes rented decreases as humidoty and windspeed increase.
 
 ```{r}
 
@@ -90,9 +102,9 @@ for(i in 1:nrow(th)){
   th[["p"]][i] <- sum(sal) / nr
 }
 
-ggplot(th, aes(x=temp, y=hum, fill=p))
+ggplot(th, aes(x=temp, y=hum, fill=p)) + geom_tile(width=3, height=10)
 ```
-
+The higher the temperature and humidity, the lower the number of rentals. This is increased if the two variables increase at the same time.
 
 ## EXERCISE:
 
@@ -107,7 +119,6 @@ Analyse the influence of **bedrooms, bathrooms, sqft_living** and **floors** on 
 
 
 ```{r}
-
 d <- read.csv("kc_house_data.csv")
 
 sampled <- sample_n(d, 1000)
@@ -128,6 +139,18 @@ for(c in names(results)[1:4])
   }
 }
 
-ggplot(days_since, aes(x=hum, y = results$hum))
+library(grid)
+library(gridExtra)
+
+g1 = ggplot(results, aes(x=sampled$bedrooms,y=bedrooms)) + geom_line() 
+g2 = ggplot(results,aes(x=sampled$bathrooms, y=bathrooms)) + geom_line() 
+g3 = ggplot(results,aes(x=sampled$sqft_living, y=sqft_living)) + geom_line() 
+g4 = ggplot(results,aes(x=sampled$floors, y=floors)) + geom_line() 
+
+#g1 + g2+ g3 + g4 + plot_layout(ncol=4)
+grid.arrange(g1, g2, g3, g4,nrow=1)
 ```
 
+The number of bathrooms, the square footage and the number of floors all drive up the price of apartments.
+
+The number of beds affects the price differently, as it increases the price if there are too many or too few beds.
